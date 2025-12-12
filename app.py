@@ -158,66 +158,216 @@ def clean_keywords(keywords, keyword):
     new_list = [word for word in keywords if all(val.lower() in word.lower() for val in keyword_parts)]
     return new_list
 
+# Embedded HTML template as fallback for Vercel
+EMBEDDED_HTML = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Keyword Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 SEO Keyword Generator</h1>
+            <p class="subtitle">Generate SEO keywords instantly using Google autocomplete</p>
+        </header>
+
+        <div class="search-section">
+            <form id="keywordForm">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="keywordInput" 
+                        placeholder="Enter your keyword or topic (e.g., 'coffee maker', 'camping gear')" 
+                        required
+                        autocomplete="off"
+                    >
+                    <button type="submit" id="generateBtn">
+                        <span class="btn-text">Generate Keywords</span>
+                        <span class="btn-loader" style="display: none;">⏳ Generating...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <div class="results-header">
+                <h2>Generated Keywords</h2>
+                <div class="results-info">
+                    <span id="keywordCount" class="count-badge"></span>
+                    <div class="download-buttons">
+                        <button id="downloadCsv" class="download-btn">📥 Download CSV</button>
+                        <button id="downloadJson" class="download-btn">📥 Download JSON</button>
+                    </div>
+                </div>
+            </div>
+            <div id="keywordsList" class="keywords-list"></div>
+        </div>
+
+        <div class="info-section">
+            <h3>How it works:</h3>
+            <ul>
+                <li>Enter your keyword or topic</li>
+                <li>Get Google autocomplete suggestions</li>
+                <li>Receive prefix-based, suffix-based, and number variations</li>
+                <li>Download results as CSV or JSON</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('keywordForm');
+        const keywordInput = document.getElementById('keywordInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const keywordsList = document.getElementById('keywordsList');
+        const errorMessage = document.getElementById('errorMessage');
+        const keywordCount = document.getElementById('keywordCount');
+        const downloadCsv = document.getElementById('downloadCsv');
+        const downloadJson = document.getElementById('downloadJson');
+
+        let currentKeyword = '';
+        let currentKeywords = [];
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const keyword = keywordInput.value.trim();
+            
+            if (!keyword) {
+                showError('Please enter a keyword');
+                return;
+            }
+
+            currentKeyword = keyword;
+            generateBtn.disabled = true;
+            generateBtn.querySelector('.btn-text').style.display = 'none';
+            generateBtn.querySelector('.btn-loader').style.display = 'inline';
+            resultsSection.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ keyword: keyword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    currentKeywords = data.keywords;
+                    displayResults(data.keywords, data.count);
+                } else {
+                    showError(data.error || 'An error occurred while generating keywords');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.querySelector('.btn-text').style.display = 'inline';
+                generateBtn.querySelector('.btn-loader').style.display = 'none';
+            }
+        });
+
+        function displayResults(keywords, count) {
+            keywordCount.textContent = `${count} keywords found`;
+            keywordsList.innerHTML = '';
+            
+            if (keywords.length === 0) {
+                keywordsList.innerHTML = '<p class="no-results">No keywords found. Try a different keyword.</p>';
+            } else {
+                keywords.forEach((keyword, index) => {
+                    const keywordItem = document.createElement('div');
+                    keywordItem.className = 'keyword-item';
+                    keywordItem.textContent = keyword;
+                    keywordsList.appendChild(keywordItem);
+                });
+            }
+            
+            resultsSection.style.display = 'block';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        downloadCsv.addEventListener('click', async () => {
+            if (!currentKeyword || currentKeywords.length === 0) return;
+            
+            try {
+                const response = await fetch('/api/download/csv', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keyword: currentKeyword,
+                        keywords: currentKeywords
+                    })
+                });
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentKeyword}-keywords.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                showError('Error downloading CSV: ' + error.message);
+            }
+        });
+
+        downloadJson.addEventListener('click', async () => {
+            if (!currentKeyword || currentKeywords.length === 0) return;
+            
+            try {
+                const response = await fetch('/api/download/json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keyword: currentKeyword,
+                        keywords: currentKeywords
+                    })
+                });
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentKeyword}-keywords.json`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                showError('Error downloading JSON: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>'''
+
 @app.route('/')
 def index():
+    # Try to use Flask's template system first (for local development)
     try:
         return render_template('index.html')
     except Exception as e:
-        # Fallback: try to read template file directly
-        try:
-            template_paths = [
-                os.path.join(BASE_DIR, 'templates', 'index.html'),
-                os.path.join(app.template_folder, 'index.html') if app.template_folder else None,
-                os.path.join('templates', 'index.html'),
-                os.path.join(os.getcwd(), 'templates', 'index.html'),
-                '/var/task/templates/index.html',
-                'templates/index.html'
-            ]
-            
-            # Filter out None values
-            template_paths = [p for p in template_paths if p is not None]
-            
-            for template_path in template_paths:
-                try:
-                    if os.path.exists(template_path) and os.path.isfile(template_path):
-                        with open(template_path, 'r', encoding='utf-8') as f:
-                            html_content = f.read()
-                        # Use Flask's url_for for static files - need to process template
-                        from flask import url_for
-                        # Simple replacement for url_for('static', filename='style.css')
-                        html_content = html_content.replace(
-                            "{{ url_for('static', filename='style.css') }}",
-                            '/static/style.css'
-                        )
-                        return html_content, 200, {'Content-Type': 'text/html; charset=utf-8'}
-                except Exception as path_error:
-                    continue
-            
-            # If template file not found, return error with helpful message
-            import traceback
-            error_trace = traceback.format_exc()
-            return f"""
-            <html>
-            <head><title>Template Error</title></head>
-            <body style="font-family: Arial; padding: 20px;">
-                <h1>Template Not Found</h1>
-                <p><strong>Error:</strong> {str(e)}</p>
-                <p><strong>Checked paths:</strong></p>
-                <ul>
-                    {''.join([f'<li>{p} - {"EXISTS" if os.path.exists(p) else "NOT FOUND"}</li>' for p in template_paths])}
-                </ul>
-                <p><strong>Current directory:</strong> {os.getcwd()}</p>
-                <p><strong>BASE_DIR:</strong> {BASE_DIR}</p>
-                <p><strong>Template folder:</strong> {app.template_folder}</p>
-                <p><strong>Static folder:</strong> {app.static_folder}</p>
-                <pre>{error_trace}</pre>
-            </body>
-            </html>
-            """, 500
-        except Exception as fallback_error:
-            import traceback
-            error_trace = traceback.format_exc()
-            return f"Error loading template: {str(e)}<br>Fallback error: {str(fallback_error)}<br><pre>{error_trace}</pre>", 500
+        # Fallback: Use embedded HTML (for Vercel deployment)
+        # This ensures the app works even if templates folder isn't included
+        return EMBEDDED_HTML, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 @app.route('/health')
 def health():
