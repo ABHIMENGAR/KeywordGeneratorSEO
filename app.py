@@ -14,11 +14,54 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # Get the directory where this script is located
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Configure Flask for Vercel deployment with absolute paths
+# For Vercel serverless, the file structure might be different
+# Try to detect if we're running on Vercel
+IS_VERCEL = os.environ.get('VERCEL') == '1' or '/var/task' in BASE_DIR
+
+# For Vercel, check multiple possible template locations
+TEMPLATE_DIRS = [
+    os.path.join(BASE_DIR, 'templates'),
+    'templates',
+    os.path.join(os.getcwd(), 'templates'),
+    '/var/task/templates',  # Vercel serverless path
+    os.path.join(BASE_DIR, '..', 'templates'),  # Parent directory
+]
+
+STATIC_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    'static',
+    os.path.join(os.getcwd(), 'static'),
+    '/var/task/static',  # Vercel serverless path
+    os.path.join(BASE_DIR, '..', 'static'),  # Parent directory
+]
+
+# Find the first existing template directory
+template_folder = None
+for td in TEMPLATE_DIRS:
+    if os.path.exists(td) and os.path.isdir(td):
+        template_folder = td
+        break
+
+# If no template folder found, use relative path (Flask default)
+if template_folder is None:
+    template_folder = 'templates'
+
+# Find the first existing static directory
+static_folder = None
+for sd in STATIC_DIRS:
+    if os.path.exists(sd) and os.path.isdir(sd):
+        static_folder = sd
+        break
+
+# If no static folder found, use relative path (Flask default)
+if static_folder is None:
+    static_folder = 'static'
+
+# Configure Flask for Vercel deployment
 app = Flask(
     __name__,
-    template_folder=os.path.join(BASE_DIR, 'templates'),
-    static_folder=os.path.join(BASE_DIR, 'static')
+    template_folder=template_folder,
+    static_folder=static_folder
 )
 
 def api_call(keyword):
@@ -120,9 +163,61 @@ def index():
     try:
         return render_template('index.html')
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        return f"Error loading template: {str(e)}<br><pre>{error_trace}</pre>", 500
+        # Fallback: try to read template file directly
+        try:
+            template_paths = [
+                os.path.join(BASE_DIR, 'templates', 'index.html'),
+                os.path.join(app.template_folder, 'index.html') if app.template_folder else None,
+                os.path.join('templates', 'index.html'),
+                os.path.join(os.getcwd(), 'templates', 'index.html'),
+                '/var/task/templates/index.html',
+                'templates/index.html'
+            ]
+            
+            # Filter out None values
+            template_paths = [p for p in template_paths if p is not None]
+            
+            for template_path in template_paths:
+                try:
+                    if os.path.exists(template_path) and os.path.isfile(template_path):
+                        with open(template_path, 'r', encoding='utf-8') as f:
+                            html_content = f.read()
+                        # Use Flask's url_for for static files - need to process template
+                        from flask import url_for
+                        # Simple replacement for url_for('static', filename='style.css')
+                        html_content = html_content.replace(
+                            "{{ url_for('static', filename='style.css') }}",
+                            '/static/style.css'
+                        )
+                        return html_content, 200, {'Content-Type': 'text/html; charset=utf-8'}
+                except Exception as path_error:
+                    continue
+            
+            # If template file not found, return error with helpful message
+            import traceback
+            error_trace = traceback.format_exc()
+            return f"""
+            <html>
+            <head><title>Template Error</title></head>
+            <body style="font-family: Arial; padding: 20px;">
+                <h1>Template Not Found</h1>
+                <p><strong>Error:</strong> {str(e)}</p>
+                <p><strong>Checked paths:</strong></p>
+                <ul>
+                    {''.join([f'<li>{p} - {"EXISTS" if os.path.exists(p) else "NOT FOUND"}</li>' for p in template_paths])}
+                </ul>
+                <p><strong>Current directory:</strong> {os.getcwd()}</p>
+                <p><strong>BASE_DIR:</strong> {BASE_DIR}</p>
+                <p><strong>Template folder:</strong> {app.template_folder}</p>
+                <p><strong>Static folder:</strong> {app.static_folder}</p>
+                <pre>{error_trace}</pre>
+            </body>
+            </html>
+            """, 500
+        except Exception as fallback_error:
+            import traceback
+            error_trace = traceback.format_exc()
+            return f"Error loading template: {str(e)}<br>Fallback error: {str(fallback_error)}<br><pre>{error_trace}</pre>", 500
 
 @app.route('/health')
 def health():
