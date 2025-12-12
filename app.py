@@ -158,6 +158,264 @@ def clean_keywords(keywords, keyword):
     new_list = [word for word in keywords if all(val.lower() in word.lower() for val in keyword_parts)]
     return new_list
 
+# Embedded CSS for Vercel deployment
+EMBEDDED_CSS = '''* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 1.1em;
+    opacity: 0.95;
+}
+
+.search-section {
+    padding: 40px 30px;
+    background: #f8f9fa;
+}
+
+.input-group {
+    display: flex;
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#keywordInput {
+    flex: 1;
+    padding: 15px 20px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#keywordInput:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#generateBtn {
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+#generateBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+#generateBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.error-message {
+    margin: 20px 30px;
+    padding: 15px 20px;
+    background: #fee;
+    color: #c33;
+    border-radius: 10px;
+    border-left: 4px solid #c33;
+}
+
+.results-section {
+    padding: 30px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.results-header h2 {
+    color: #333;
+    font-size: 1.8em;
+}
+
+.results-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.count-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.download-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.download-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #667eea;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.keywords-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.keyword-item {
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.keyword-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 16px;
+}
+
+.info-section {
+    padding: 30px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.info-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.info-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.info-section li {
+    padding: 8px 0;
+    padding-left: 25px;
+    position: relative;
+    color: #666;
+}
+
+.info-section li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2em;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    #generateBtn {
+        width: 100%;
+    }
+    
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .download-buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .download-btn {
+        width: 100%;
+    }
+    
+    .keywords-list {
+        grid-template-columns: 1fr;
+    }
+}'''
+
 # Embedded HTML template as fallback for Vercel
 EMBEDDED_HTML = '''<!DOCTYPE html>
 <html lang="en">
@@ -165,7 +423,9 @@ EMBEDDED_HTML = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEO Keyword Generator</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <style>
+    ''' + EMBEDDED_CSS + '''
+    </style>
 </head>
 <body>
     <div class="container">
@@ -372,6 +632,33 @@ def index():
 @app.route('/health')
 def health():
     return jsonify({'status': 'ok', 'message': 'Flask app is running'}), 200
+
+@app.route('/static/style.css')
+def serve_css():
+    """Serve CSS file directly for Vercel deployment"""
+    try:
+        # Try to read from static folder first
+        css_paths = [
+            os.path.join(BASE_DIR, 'static', 'style.css'),
+            os.path.join(app.static_folder, 'style.css') if app.static_folder else None,
+            'static/style.css',
+            os.path.join(os.getcwd(), 'static', 'style.css'),
+            '/var/task/static/style.css'
+        ]
+        
+        css_paths = [p for p in css_paths if p is not None]
+        
+        for css_path in css_paths:
+            if os.path.exists(css_path) and os.path.isfile(css_path):
+                with open(css_path, 'r', encoding='utf-8') as f:
+                    css_content = f.read()
+                return css_content, 200, {'Content-Type': 'text/css; charset=utf-8'}
+        
+        # Fallback: return embedded CSS
+        return EMBEDDED_CSS, 200, {'Content-Type': 'text/css; charset=utf-8'}
+    except Exception as e:
+        # Return embedded CSS as fallback
+        return EMBEDDED_CSS, 200, {'Content-Type': 'text/css; charset=utf-8'}
 
 @app.route('/api/generate', methods=['POST'])
 def generate_keywords():
