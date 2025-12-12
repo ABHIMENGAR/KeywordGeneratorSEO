@@ -11,7 +11,15 @@ warnings.filterwarnings('ignore', message='Unverified HTTPS request')
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-app = Flask(__name__)
+# Get the directory where this script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Configure Flask for Vercel deployment with absolute paths
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 
 def api_call(keyword):
     keywords = [keyword]
@@ -109,7 +117,16 @@ def clean_keywords(keywords, keyword):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        return f"Error loading template: {str(e)}<br><pre>{error_trace}</pre>", 500
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok', 'message': 'Flask app is running'}), 200
 
 @app.route('/api/generate', methods=['POST'])
 def generate_keywords():
@@ -169,6 +186,8 @@ def download_json():
         download_name=f'{keyword}-keywords.json'
     )
 
+# Export app for Vercel
+# The @vercel/python builder will automatically detect this Flask app
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
