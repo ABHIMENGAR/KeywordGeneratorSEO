@@ -17,12 +17,38 @@ app = Flask(__name__,
 # Initialize Service
 keyword_service = GoogleKeywordService()
 
+@app.route('/static/style.css')
+def serve_css():
+    try:
+        css_path = os.path.join(BASE_DIR, 'static', 'style.css')
+        if os.path.exists(css_path):
+            with open(css_path, 'r', encoding='utf-8') as f:
+                return f.read(), 200, {'Content-Type': 'text/css'}
+    except Exception:
+        pass
+    return "", 404
+
+@app.route('/static/script.js')
+def serve_js():
+    try:
+        js_path = os.path.join(BASE_DIR, 'static', 'script.js')
+        if os.path.exists(js_path):
+            with open(js_path, 'r', encoding='utf-8') as f:
+                return f.read(), 200, {'Content-Type': 'application/javascript'}
+    except Exception:
+        pass
+    return "", 404
+
 @app.route('/')
 def index():
     try:
         return render_template('index.html')
     except Exception as e:
         # Fallback for Vercel if template isn't found
+        template_path = os.path.join(BASE_DIR, 'templates', 'index.html')
+        if os.path.exists(template_path):
+            with open(template_path, 'r', encoding='utf-8') as f:
+                return f.read(), 200, {'Content-Type': 'text/html'}
         return "<h1>Keyword Generator SEO</h1><p>The application is running, but the template could not be loaded. Please check your deployment logs.</p>", 200, {'Content-Type': 'text/html'}
 
 @app.route('/health')
