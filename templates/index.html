@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate thousands of SEO keywords instantly with our advanced Google Autocomplete scraping tool. Free, fast, and easy to use.">
+    <title>SEO Keyword Generator | Boost Your Rankings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo-area">
+                <span class="logo-icon">🔍</span>
+                <h1>Keyword Gen <span class="highlight">Pro</span></h1>
+            </div>
+            <p class="tagline">Uncover thousands of hidden long-tail keywords in seconds.</p>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <form id="keywordForm" class="search-form">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="keywordInput" 
+                            placeholder="Enter a broad topic (e.g., 'coffee beans', 'digital marketing')" 
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" id="generateBtn">
+                            <span class="btn-text">Generate Keywords</span>
+                            <span class="btn-loader" style="display: none;">
+                                <span class="spinner"></span> Processing...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="resultsSection" class="results-section hidden">
+                <div class="results-toolbar">
+                    <div class="stats">
+                        <span class="stat-number" id="keywordCount">0</span>
+                        <span class="stat-label">Keywords Found</span>
+                    </div>
+                    <div class="actions">
+                        <button id="copyBtn" class="action-btn secondary">
+                            📋 Copy All
+                        </button>
+                        <button id="downloadCsv" class="action-btn primary">
+                            📥 CSV
+                        </button>
+                        <button id="downloadJson" class="action-btn primary">
+                            📥 JSON
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" id="filterInput" placeholder="Filter results..." class="filter-input">
+                </div>
+
+                <div id="keywordsList" class="keywords-grid">
+                    <!-- Keywords will be injected here -->
+                </div>
+            </section>
+
+            <div id="errorMessage" class="error-banner hidden"></div>
+            
+            <section class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Blazing Fast</h3>
+                    <p>Powered by asynchronous technology to fetch results instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Laser Targeted</h3>
+                    <p>Finds relevant long-tail variations your competitors miss.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📂</div>
+                    <h3>Easy Export</h3>
+                    <p>Download your keyword lists in CSV or JSON format with one click.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="main-footer">
+            <p>&copy; 2024 Keyword Gen Pro. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
