@@ -9,7 +9,7 @@ from services import GoogleKeywordService
 # Get the directory where this script is located
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Configure Flask
+# Configure Flask with robust paths for Vercel
 app = Flask(__name__, 
             template_folder=os.path.join(BASE_DIR, 'templates'),
             static_folder=os.path.join(BASE_DIR, 'static'))
@@ -19,7 +19,11 @@ keyword_service = GoogleKeywordService()
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        # Fallback for Vercel if template isn't found
+        return "<h1>Keyword Generator SEO</h1><p>The application is running, but the template could not be loaded. Please check your deployment logs.</p>", 200, {'Content-Type': 'text/html'}
 
 @app.route('/health')
 def health():
