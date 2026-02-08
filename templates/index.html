@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Generate thousands of SEO keywords instantly with our advanced Google Autocomplete scraping tool. Free, fast, and easy to use.">
+    <meta name="description"
+        content="Generate thousands of SEO keywords instantly with our advanced Google Autocomplete scraping tool. Free, fast, and easy to use.">
     <title>SEO Keyword Generator | Boost Your Rankings</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
     <div class="app-container">
         <header class="main-header">
@@ -24,13 +27,9 @@
             <section class="search-section">
                 <form id="keywordForm" class="search-form">
                     <div class="input-wrapper">
-                        <input 
-                            type="text" 
-                            id="keywordInput" 
-                            placeholder="Enter a broad topic (e.g., 'coffee beans', 'digital marketing')" 
-                            autocomplete="off"
-                            required
-                        >
+                        <input type="text" id="keywordInput"
+                            placeholder="Enter a broad topic (e.g., 'coffee beans', 'digital marketing')"
+                            autocomplete="off" required>
                         <button type="submit" id="generateBtn">
                             <span class="btn-text">Generate Keywords</span>
                             <span class="btn-loader" style="display: none;">
@@ -70,7 +69,7 @@
             </section>
 
             <div id="errorMessage" class="error-banner hidden"></div>
-            
+
             <section class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">🚀</div>
@@ -91,10 +90,11 @@
         </main>
 
         <footer class="main-footer">
-            <p>&copy; 2024 Keyword Gen Pro. All rights reserved.</p>
+            <p>&copy; 2025 Keyword Gen Pro. All rights reserved.</p>
         </footer>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
