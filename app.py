@@ -10,46 +10,61 @@ from services import GoogleKeywordService
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Configure Flask with robust paths for Vercel
-app = Flask(__name__, 
-            template_folder=os.path.join(BASE_DIR, 'templates'),
-            static_folder=os.path.join(BASE_DIR, 'static'))
+# Detect environment
+IS_VERCEL = os.environ.get('VERCEL') == '1' or 'var/task' in BASE_DIR
+
+def find_file(folder_name, file_name):
+    """Search for a file in multiple possible locations on Vercel"""
+    search_paths = [
+        os.path.join(BASE_DIR, folder_name, file_name),
+        os.path.join(os.getcwd(), folder_name, file_name),
+        os.path.join('/var/task', folder_name, file_name),
+        os.path.join(BASE_DIR, '..', folder_name, file_name),
+        f"{folder_name}/{file_name}"
+    ]
+    for path in search_paths:
+        if os.path.exists(path):
+            return path
+    return None
+
+app = Flask(__name__)
 
 # Initialize Service
 keyword_service = GoogleKeywordService()
 
 @app.route('/static/style.css')
 def serve_css():
-    try:
-        css_path = os.path.join(BASE_DIR, 'static', 'style.css')
-        if os.path.exists(css_path):
-            with open(css_path, 'r', encoding='utf-8') as f:
-                return f.read(), 200, {'Content-Type': 'text/css'}
-    except Exception:
-        pass
+    path = find_file('static', 'style.css')
+    if path:
+        with open(path, 'r', encoding='utf-8') as f:
+            return f.read(), 200, {'Content-Type': 'text/css'}
     return "", 404
 
 @app.route('/static/script.js')
 def serve_js():
-    try:
-        js_path = os.path.join(BASE_DIR, 'static', 'script.js')
-        if os.path.exists(js_path):
-            with open(js_path, 'r', encoding='utf-8') as f:
-                return f.read(), 200, {'Content-Type': 'application/javascript'}
-    except Exception:
-        pass
+    path = find_file('static', 'script.js')
+    if path:
+        with open(path, 'r', encoding='utf-8') as f:
+            return f.read(), 200, {'Content-Type': 'application/javascript'}
     return "", 404
 
 @app.route('/')
 def index():
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        # Fallback for Vercel if template isn't found
-        template_path = os.path.join(BASE_DIR, 'templates', 'index.html')
-        if os.path.exists(template_path):
-            with open(template_path, 'r', encoding='utf-8') as f:
-                return f.read(), 200, {'Content-Type': 'text/html'}
-        return "<h1>Keyword Generator SEO</h1><p>The application is running, but the template could not be loaded. Please check your deployment logs.</p>", 200, {'Content-Type': 'text/html'}
+    path = find_file('templates', 'index.html')
+    if path:
+        try:
+            # We can't use render_template easily if we are manually finding the path
+            # but we can try to use it if the path is relative to Flask's expectations
+            # or just read and return it.
+            with open(path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                # Simple replacement for url_for to ensure static links work
+                content = content.replace("{{ url_for('static', filename='style.css') }}", "/static/style.css")
+                content = content.replace("{{ url_for('static', filename='script.js') }}", "/static/script.js")
+                return content, 200, {'Content-Type': 'text/html'}
+        except Exception:
+            pass
+    return "<h1>Keyword Generator SEO</h1><p>The application is running, but the template could not be loaded.</p>", 200, {'Content-Type': 'text/html'}
 
 @app.route('/health')
 def health():
